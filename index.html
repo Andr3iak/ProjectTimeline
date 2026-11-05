@@ -4,9 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Доска задач · проект «Щелк»</title>
+<script>
+/* Ранняя установка темы — чтобы не мигало при загрузке */
+(function(){
+  try {
+    if (localStorage.getItem("shchelk-theme-v1") === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  } catch (e) {}
+})();
+</script>
 <style>
   :root{
     --bg:#f4f6fb;
+    --bg-grad-1:#e6ecff;
+    --bg-grad-2:#ffe6f4;
     --panel:#ffffff;
     --text:#1b2434;
     --muted:#6b7791;
@@ -18,6 +30,103 @@
     --bazhenov:#0f9d76;
     --radius:16px;
     --shadow:0 1px 2px rgba(16,24,40,.05), 0 10px 30px -16px rgba(16,24,40,.28);
+    --card-hover-shadow:0 8px 20px -12px rgba(16,24,40,.45);
+    --card-focus-shadow:0 0 0 3px rgba(79,70,229,.25);
+    --topbar-bg:rgba(255,255,255,.84);
+    --column-bg:rgba(255,255,255,.72);
+    --chip-on-bg:#1b2434;
+    --chip-on-text:#ffffff;
+    --progress-bg:#e6ebf6;
+    --card-c-default:#cbd5e1;
+    --check-border:#d4dbea;
+    --check-hover:#a9b6d1;
+    --col-num-bg:#eaeeff;
+    --col-num-color:#4f46e5;
+    --tag-bg:#eef1f6;
+    --tag-color:#4a5568;
+    --author-bg:#eef2f9;
+    --author-color:#4a5568;
+    --author-andrey-bg:#e8efff;
+    --author-andrey-color:#2454d1;
+    --author-sonya-bg:#fdeaf5;
+    --author-sonya-color:#b32b7d;
+    --author-bazhenov-bg:#e3f7f0;
+    --author-bazhenov-color:#0a7a5c;
+    --type-feat-bg:#e7f7ef;
+    --type-feat-color:#0b7a4b;
+    --type-fix-bg:#fdeaea;
+    --type-fix-color:#b42318;
+    --type-refactor-bg:#fff4e5;
+    --type-refactor-color:#a15c07;
+    --type-docs-bg:#e8f0fe;
+    --type-docs-color:#1a4fb8;
+    --type-test-bg:#f3e9fd;
+    --type-test-color:#7a2fbf;
+    --type-chore-bg:#eef1f6;
+    --type-chore-color:#4a5568;
+    --card-done-bg:#f7fbf9;
+    --code-bg:#f1f4fa;
+    --code-color:#374151;
+    --search-focus-border:#9aa8ff;
+    --search-focus-shadow:0 0 0 3px rgba(79,70,229,.13);
+    --btn-ghost-hover-color:#b42318;
+    --btn-ghost-hover-border:#f4b8b3;
+    --btn-ghost-hover-bg:#fff6f5;
+  }
+
+  [data-theme="dark"]{
+    color-scheme: dark;
+    --bg:#0e1117;
+    --bg-grad-1:#1a1f3a;
+    --bg-grad-2:#2a1530;
+    --panel:#181c25;
+    --text:#e8ecf4;
+    --muted:#8a95a8;
+    --line:#2a3040;
+    --line-strong:#3d4658;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -16px rgba(0,0,0,.7);
+    --card-hover-shadow:0 8px 20px -12px rgba(0,0,0,.7);
+    --card-focus-shadow:0 0 0 3px rgba(120,130,255,.3);
+    --topbar-bg:rgba(20,24,33,.85);
+    --column-bg:rgba(24,28,37,.72);
+    --chip-on-bg:#e8ecf4;
+    --chip-on-text:#0e1117;
+    --progress-bg:#232838;
+    --card-c-default:#3d4658;
+    --check-border:#3d4658;
+    --check-hover:#556179;
+    --col-num-bg:#232a4d;
+    --col-num-color:#8fa3ff;
+    --tag-bg:#232838;
+    --tag-color:#a8b3c8;
+    --author-bg:#232838;
+    --author-color:#a8b3c8;
+    --author-andrey-bg:#1a2650;
+    --author-andrey-color:#8fa3ff;
+    --author-sonya-bg:#3d1a32;
+    --author-sonya-color:#f0a0d0;
+    --author-bazhenov-bg:#14352c;
+    --author-bazhenov-color:#5fdcb4;
+    --type-feat-bg:#14352a;
+    --type-feat-color:#5fdc9a;
+    --type-fix-bg:#3d1a1a;
+    --type-fix-color:#f0a0a0;
+    --type-refactor-bg:#3d2e14;
+    --type-refactor-color:#f0c060;
+    --type-docs-bg:#1a2650;
+    --type-docs-color:#8fa3ff;
+    --type-test-bg:#2e1a3d;
+    --type-test-color:#c090e8;
+    --type-chore-bg:#232838;
+    --type-chore-color:#a8b3c8;
+    --card-done-bg:#14231c;
+    --code-bg:#232838;
+    --code-color:#c8d0e0;
+    --search-focus-border:#5a6bd0;
+    --search-focus-shadow:0 0 0 3px rgba(120,130,255,.2);
+    --btn-ghost-hover-color:#f0a0a0;
+    --btn-ghost-hover-border:#5a3030;
+    --btn-ghost-hover-bg:#2a1818;
   }
 
   *{box-sizing:border-box}
@@ -27,24 +136,25 @@
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
     color:var(--text);
     background:
-      radial-gradient(1100px 520px at 8% -12%, #e6ecff 0%, transparent 58%),
-      radial-gradient(900px 480px at 100% -6%, #ffe6f4 0%, transparent 55%),
+      radial-gradient(1100px 520px at 8% -12%, var(--bg-grad-1) 0%, transparent 58%),
+      radial-gradient(900px 480px at 100% -6%, var(--bg-grad-2) 0%, transparent 55%),
       var(--bg);
     min-height:100vh;
     -webkit-font-smoothing:antialiased;
+    transition:background-color .25s ease, color .25s ease;
   }
 
   /* ---------- Верхняя панель ---------- */
   .topbar{
     position:sticky;top:0;z-index:60;
-    background:rgba(255,255,255,.84);
+    background:var(--topbar-bg);
     backdrop-filter:blur(14px);
     -webkit-backdrop-filter:blur(14px);
     border-bottom:1px solid var(--line);
   }
   .topbar-inner{
     max-width:1720px;margin:0 auto;padding:14px 24px;
-    display:flex;align-items:center;gap:28px;flex-wrap:wrap;
+    display:flex;align-items:center;gap:20px;flex-wrap:wrap;
   }
   .brand{display:flex;align-items:center;gap:12px;min-width:260px}
   .logo{
@@ -60,12 +170,20 @@
   .progress-wrap{flex:1 1 320px;max-width:520px;margin-left:auto}
   .progress-top{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;color:var(--muted);margin-bottom:6px}
   .progress-top b{font-size:13px;color:var(--text)}
-  .progress{height:9px;border-radius:999px;background:#e6ebf6;overflow:hidden}
+  .progress{height:9px;border-radius:999px;background:var(--progress-bg);overflow:hidden}
   .fill{
     height:100%;width:0%;border-radius:999px;
     background:linear-gradient(90deg,#4f46e5,#7c3aed 55%,#12b76a);
     transition:width .35s cubic-bezier(.4,0,.2,1);
   }
+
+  .theme-toggle{
+    flex:none;width:40px;height:40px;border-radius:10px;
+    border:1px solid var(--line);background:var(--panel);color:var(--text);
+    font-size:18px;cursor:pointer;display:grid;place-items:center;
+    transition:.15s;line-height:1;
+  }
+  .theme-toggle:hover{border-color:var(--line-strong);background:var(--code-bg)}
 
   /* ---------- Статистика и фильтры ---------- */
   .toolbar{max-width:1720px;margin:0 auto;padding:18px 24px 6px}
@@ -88,7 +206,7 @@
     cursor:pointer;transition:.15s;white-space:nowrap;
   }
   .chip:hover{border-color:var(--line-strong);color:var(--text)}
-  .chip.is-on{background:#1b2434;border-color:#1b2434;color:#fff}
+  .chip.is-on{background:var(--chip-on-bg);border-color:var(--chip-on-bg);color:var(--chip-on-text)}
   .dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none}
   .dot-andrey{background:var(--andrey)}
   .dot-sonya{background:var(--sonya)}
@@ -99,13 +217,13 @@
     border:1px solid var(--line);border-radius:999px;background:var(--panel);
     padding:8px 15px;font-size:13px;font-family:inherit;color:var(--text);outline:none;transition:.15s;
   }
-  .search:focus{border-color:#9aa8ff;box-shadow:0 0 0 3px rgba(79,70,229,.13)}
+  .search:focus{border-color:var(--search-focus-border);box-shadow:var(--search-focus-shadow)}
   .btn-ghost{
     border:1px solid var(--line);background:var(--panel);color:var(--muted);
     border-radius:999px;padding:8px 14px;font-size:12.5px;font-family:inherit;
     cursor:pointer;transition:.15s;margin-left:auto;white-space:nowrap;
   }
-  .btn-ghost:hover{color:#b42318;border-color:#f4b8b3;background:#fff6f5}
+  .btn-ghost:hover{color:var(--btn-ghost-hover-color);border-color:var(--btn-ghost-hover-border);background:var(--btn-ghost-hover-bg)}
 
   /* ---------- Доска ---------- */
   .board-wrap{padding:18px 24px 80px;overflow-x:auto;max-width:1720px;margin:0 auto}
@@ -113,7 +231,7 @@
 
   .column{
     flex:1 1 300px;min-width:280px;max-width:470px;
-    background:rgba(255,255,255,.72);
+    background:var(--column-bg);
     border:1px solid var(--line);border-radius:var(--radius);
     padding:14px;display:flex;flex-direction:column;gap:10px;
     backdrop-filter:blur(6px);
@@ -122,18 +240,18 @@
   .col-top{display:flex;align-items:center;gap:8px}
   .col-num{
     width:22px;height:22px;border-radius:7px;flex:none;display:grid;place-items:center;
-    font-size:11.5px;font-weight:700;color:#4f46e5;background:#eaeeff;
+    font-size:11.5px;font-weight:700;color:var(--col-num-color);background:var(--col-num-bg);
   }
   .col-head h2{margin:0;font-size:13.5px;font-weight:700;letter-spacing:-.1px;line-height:1.3}
   .col-meta{font-size:11.5px;color:var(--muted)}
   .tag{
     display:inline-block;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
     font-size:10.5px;font-weight:600;padding:1px 6px;border-radius:5px;
-    background:#eef1f6;color:#4a5568;vertical-align:1px;
+    background:var(--tag-bg);color:var(--tag-color);vertical-align:1px;
   }
   .col-goal{margin:2px 0 4px;font-size:11.5px;line-height:1.45;color:var(--muted)}
   .col-progress{display:flex;align-items:center;gap:8px}
-  .col-progress .bar{flex:1;height:5px;border-radius:999px;background:#e6ebf6;overflow:hidden}
+  .col-progress .bar{flex:1;height:5px;border-radius:999px;background:var(--progress-bg);overflow:hidden}
   .col-progress .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#4f46e5,#12b76a);transition:width .3s}
   .col-progress span{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
 
@@ -141,31 +259,31 @@
 
   /* ---------- Карточка ---------- */
   .card{
-    --c:#cbd5e1;
+    --c:var(--card-c-default);
     position:relative;background:var(--panel);
     border:1px solid var(--line);border-left:3px solid var(--c);
     border-radius:12px;padding:11px 12px 12px;
     cursor:pointer;transition:transform .16s, box-shadow .16s, border-color .16s, opacity .16s, background .16s;
     outline:none;
   }
-  .card:hover{transform:translateY(-1px);box-shadow:0 8px 20px -12px rgba(16,24,40,.45);border-color:var(--line-strong);border-left-color:var(--c)}
-  .card:focus-visible{box-shadow:0 0 0 3px rgba(79,70,229,.25)}
+  .card:hover{transform:translateY(-1px);box-shadow:var(--card-hover-shadow);border-color:var(--line-strong);border-left-color:var(--c)}
+  .card:focus-visible{box-shadow:var(--card-focus-shadow)}
   .card.a-andrey{--c:var(--andrey)}
   .card.a-sonya{--c:var(--sonya)}
   .card.a-bazhenov{--c:var(--bazhenov)}
 
   .card-top{display:flex;align-items:center;gap:7px;margin-bottom:7px}
   .date{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
-  .author{font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:999px;background:#eef2f9;color:#4a5568}
-  .card.a-andrey .author{background:#e8efff;color:#2454d1}
-  .card.a-sonya .author{background:#fdeaf5;color:#b32b7d}
-  .card.a-bazhenov .author{background:#e3f7f0;color:#0a7a5c}
+  .author{font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:999px;background:var(--author-bg);color:var(--author-color)}
+  .card.a-andrey .author{background:var(--author-andrey-bg);color:var(--author-andrey-color)}
+  .card.a-sonya .author{background:var(--author-sonya-bg);color:var(--author-sonya-color)}
+  .card.a-bazhenov .author{background:var(--author-bazhenov-bg);color:var(--author-bazhenov-color)}
 
   .check{
     width:18px;height:18px;border-radius:50%;flex:none;margin-left:auto;
-    border:2px solid #d4dbea;position:relative;transition:.16s;
+    border:2px solid var(--check-border);position:relative;transition:.16s;
   }
-  .card:hover .check{border-color:#a9b6d1}
+  .card:hover .check{border-color:var(--check-hover)}
 
   .msg{font-size:13px;line-height:1.45;font-weight:600;letter-spacing:-.05px}
   .type{
@@ -173,17 +291,16 @@
     font-size:10.5px;font-weight:700;padding:2px 6px;border-radius:6px;
     margin-right:6px;white-space:nowrap;
   }
-  .t-feat{background:#e7f7ef;color:#0b7a4b}
-  .t-fix{background:#fdeaea;color:#b42318}
-  .t-refactor{background:#fff4e5;color:#a15c07}
-  .t-docs{background:#e8f0fe;color:#1a4fb8}
-  .t-test{background:#f3e9fd;color:#7a2fbf}
-  .t-chore{background:#eef1f6;color:#4a5568}
-  .t-other{background:#eef1f6;color:#4a5568}
+  .t-feat{background:var(--type-feat-bg);color:var(--type-feat-color)}
+  .t-fix{background:var(--type-fix-bg);color:var(--type-fix-color)}
+  .t-refactor{background:var(--type-refactor-bg);color:var(--type-refactor-color)}
+  .t-docs{background:var(--type-docs-bg);color:var(--type-docs-color)}
+  .t-test{background:var(--type-test-bg);color:var(--type-test-color)}
+  .t-chore,.t-other{background:var(--type-chore-bg);color:var(--type-chore-color)}
 
   .desc{margin:6px 0 0;font-size:11.8px;line-height:1.5;color:var(--muted)}
 
-  .card.is-done{opacity:.58;background:#f7fbf9}
+  .card.is-done{opacity:.58;background:var(--card-done-bg)}
   .card.is-done .msg .rest{text-decoration:line-through;text-decoration-thickness:1.5px}
   .card.is-done .check{background:var(--done);border-color:var(--done)}
   .card.is-done .check::after{
@@ -195,37 +312,60 @@
   .column.is-empty .empty{display:block}
   .column.is-empty .cards{display:none}
 
-  /* ---------- Правила ---------- */
-  .rules{
-    max-width:1720px;margin:0 auto 48px;padding:0 24px;
+  /* ---------- Информационные блоки (роли, правила, элементы C#) ---------- */
+  .info-block{
+    max-width:1720px;margin:0 auto;padding:0 24px 14px;
   }
-  .rules details{
+  .info-block:last-of-type{padding-bottom:48px}
+  .info-block details{
     background:var(--panel);border:1px solid var(--line);border-radius:14px;
     padding:14px 18px;box-shadow:var(--shadow);
   }
-  .rules summary{
+  .info-block summary{
     cursor:pointer;font-size:13.5px;font-weight:600;color:var(--text);
     list-style:none;display:flex;align-items:center;gap:8px;
   }
-  .rules summary::-webkit-details-marker{display:none}
-  .rules summary::before{
+  .info-block summary::-webkit-details-marker{display:none}
+  .info-block summary::before{
     content:"▸";color:var(--muted);font-size:12px;transition:transform .2s;display:inline-block;
   }
-  .rules details[open] summary::before{transform:rotate(90deg)}
-  .rules ul{margin:12px 0 0;padding-left:18px;font-size:12.8px;line-height:1.75;color:var(--muted)}
-  .rules li b{color:var(--text);font-weight:600}
-  .rules code{
+  .info-block details[open] summary::before{transform:rotate(90deg)}
+  .info-block ul{margin:12px 0 0;padding-left:18px;font-size:12.8px;line-height:1.75;color:var(--muted)}
+  .info-block li b{color:var(--text);font-weight:600}
+  .info-block code{
     font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-    font-size:11.5px;background:#f1f4fa;padding:1px 5px;border-radius:5px;color:#374151;
+    font-size:11.5px;background:var(--code-bg);padding:1px 5px;border-radius:5px;color:var(--code-color);
   }
+  .info-block .lead{
+    margin:12px 0 0;font-size:12.8px;line-height:1.65;color:var(--muted);
+  }
+  .info-block .lead b{color:var(--text);font-weight:600}
+
+  .info-table-wrap{overflow-x:auto;margin-top:12px}
+  .info-table{
+    width:100%;border-collapse:collapse;font-size:12.5px;min-width:520px;
+  }
+  .info-table th,.info-table td{
+    text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);
+    vertical-align:top;line-height:1.5;
+  }
+  .info-table th{
+    color:var(--muted);font-weight:600;font-size:10.5px;
+    text-transform:uppercase;letter-spacing:.05em;
+  }
+  .info-table tr:last-child td{border-bottom:none}
+  .info-table td{color:var(--muted)}
+  .info-table td:first-child{color:var(--text);font-weight:600;white-space:nowrap}
 
   @media (max-width:640px){
-    .topbar-inner{padding:12px 16px;gap:14px}
-    .progress-wrap{max-width:none;flex-basis:100%;margin-left:0}
+    .topbar-inner{padding:12px 16px;gap:12px}
+    .progress-wrap{max-width:none;flex-basis:100%;margin-left:0;order:3}
+    .theme-toggle{margin-left:auto}
     .toolbar{padding:14px 16px 4px}
     .board-wrap{padding:14px 16px 64px}
     .btn-ghost{margin-left:0}
-    .rules{padding:0 16px}
+    .info-block{padding:0 16px 12px}
+    .info-block:last-of-type{padding-bottom:40px}
   }
 </style>
 </head>
@@ -247,6 +387,7 @@
       </div>
       <div class="progress"><div class="fill" id="fill"></div></div>
     </div>
+    <button class="theme-toggle" id="themeToggle" type="button" aria-label="Тёмная тема" title="Переключить тему">🌙</button>
   </div>
 </header>
 
@@ -282,7 +423,43 @@
   <div class="board" id="board"></div>
 </div>
 
-<div class="rules">
+<!-- ===================== РОЛИ И ИНТЕГРАЦИЯ ===================== -->
+<div class="info-block">
+  <details>
+    <summary>Роли и интеграция</summary>
+    <p class="lead">
+      Интеграция идёт через <b>общие контракты</b>. Баженов использует <code>GameEngine</code> Андрея и его события.
+      Соня подписывается на события Андрея и вызывает сервисы Баженова. Андрей в финале собирает всё в <code>Program.cs</code>.
+    </p>
+    <div class="info-table-wrap">
+      <table class="info-table">
+        <thead>
+          <tr><th>Участник</th><th>Зона ответственности</th><th>Файлы</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Андрей (тимлид)</td>
+            <td>Логика игры, события, отмена хода, таймер, сборка слоёв, релиз</td>
+            <td><code>Logic/</code> (Board, Position, Player, GameEngine, MoveRecord, GameEvents, GameExceptions, TurnTimer), <code>Program.cs</code>, <code>.csproj</code></td>
+          </tr>
+          <tr>
+            <td>Соня</td>
+            <td>Пользовательский уровень: ввод-вывод, проверка ввода, меню, сеанс партии</td>
+            <td><code>UI/</code> (ConsoleIo, InputTypes, InputParser, BoardRenderer, UnicodeBoardRenderer, GameSession, ConsoleApp)</td>
+          </tr>
+          <tr>
+            <td>Баженов</td>
+            <td>Уровень данных, сохранение и загрузка, рекорды</td>
+            <td><code>Data/</code>, <code>Logic/</code> (GameSnapshot, SaveGameService, ScoreRecord, ScoreService), тест-план</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+</div>
+
+<!-- ===================== ПРАВИЛА GIT ===================== -->
+<div class="info-block">
   <details>
     <summary>Правила работы с Git</summary>
     <ul>
@@ -297,9 +474,69 @@
   </details>
 </div>
 
+<!-- ===================== ЭЛЕМЕНТЫ C# И КОММИТЫ ===================== -->
+<div class="info-block">
+  <details>
+    <summary>Элементы C# и коммиты</summary>
+    <p class="lead">Когда появляются требования ТЗ и элементы C# по ходу плана.</p>
+    <div class="info-table-wrap">
+      <table class="info-table">
+        <thead>
+          <tr><th>Элемент</th><th>Коммиты</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Структуры, перечисления, значимые и ссылочные типы</td><td>Андрей 6.11 (Position, CellState), Андрей 8.11 (GameStatus)</td></tr>
+          <tr><td>Массивы</td><td>Андрей 7.11 (CellState[,]), Соня 11.11 (string[] меню)</td></tr>
+          <tr><td>Константы, конструкторы, методы типа</td><td>Андрей 7.11 (Board), Андрей 9.11 (Player.MaxNameLength)</td></tr>
+          <tr><td>Строки, StringBuilder, char, форматирование</td><td>Соня 7.11 (отрисовка), Соня 9.11 (разбор по символам)</td></tr>
+          <tr><td>Свойства с логикой</td><td>Андрей 9.11 (Player.Name)</td></tr>
+          <tr><td>Исключения, try/catch/finally, throw</td><td>Баженов 7.11 и 8.11, Андрей 10.11, Баженов 14.11</td></tr>
+          <tr><td>out и ref</td><td>Соня 9.11 (out), Андрей 11.11 (out и ref)</td></tr>
+          <tr><td>Делегаты</td><td>Баженов 10.11 (Comparison), Соня 12.11 (TryParser&lt;T&gt;), Баженов 14.11 (Func)</td></tr>
+          <tr><td>Обобщения</td><td>Баженов 11.11 (IRepository&lt;T&gt;), Соня 12.11 (ReadValidAsync&lt;T&gt;)</td></tr>
+          <tr><td>Task, async/await</td><td>Баженов 12.11, Соня 13.11, Андрей 14.11</td></tr>
+          <tr><td>Виртуальные методы</td><td>Андрей 13.11 (OnXxx), Баженов 13.11 (CreateOptions), Соня 16.11 (GetCellSymbol)</td></tr>
+          <tr><td>События</td><td>Андрей 13.11 (объявление), Соня 14.11 (подписка)</td></tr>
+          <tr><td>Значения по умолчанию</td><td>Андрей 7.11 (Board), Андрей 15.11 (GameEngine)</td></tr>
+          <tr><td>Проверка ввода</td><td>Соня 9.11, 10.11, 12.11 и 16.11</td></tr>
+          <tr><td>Меню</td><td>Соня 11.11</td></tr>
+          <tr><td>Сохранение и загрузка</td><td>Баженов 14.11 и 15.11, Соня 17.11</td></tr>
+          <tr><td>Таблица рекордов, топ-N при запуске</td><td>Баженов 10.11 и 15.11, Соня 18.11</td></tr>
+          <tr><td>Отмена хода, история ходов</td><td>Андрей 12.11 и 14.11, Соня 15.11</td></tr>
+          <tr><td>Лимит времени на ход</td><td>Андрей 14.11, Соня 15.11</td></tr>
+          <tr><td>XML-документация, чистая сборка</td><td>Андрей 18.11</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+</div>
+
 <script>
 (function () {
   "use strict";
+
+  /* ===================== Тема ===================== */
+  var THEME_KEY = "shchelk-theme-v1";
+  var htmlEl = document.documentElement;
+  var themeBtn = document.getElementById("themeToggle");
+
+  function applyTheme(theme) {
+    if (theme === "dark") htmlEl.setAttribute("data-theme", "dark");
+    else htmlEl.removeAttribute("data-theme");
+    themeBtn.textContent = theme === "dark" ? "☀️" : "🌙";
+    themeBtn.setAttribute("aria-label", theme === "dark" ? "Светлая тема" : "Тёмная тема");
+    themeBtn.setAttribute("title", theme === "dark" ? "Светлая тема" : "Тёмная тема");
+    try { localStorage.setItem(THEME_KEY, theme); } catch (e) {}
+  }
+
+  var initialTheme = "light";
+  try { initialTheme = localStorage.getItem(THEME_KEY) || "light"; } catch (e) {}
+  applyTheme(initialTheme);
+
+  themeBtn.addEventListener("click", function () {
+    var isDark = htmlEl.getAttribute("data-theme") === "dark";
+    applyTheme(isDark ? "light" : "dark");
+  });
 
   /* ===================== Данные ===================== */
   var AUTHORS = {
