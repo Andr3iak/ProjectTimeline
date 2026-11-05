@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Доска задач · проект «Щелк»</title>
+<style>
+  :root{
+    --bg:#f4f6fb;
+    --panel:#ffffff;
+    --text:#1b2434;
+    --muted:#6b7791;
+    --line:#e3e8f2;
+    --line-strong:#c9d2e6;
+    --done:#12b76a;
+    --andrey:#3b6ef0;
+    --sonya:#d6459b;
+    --bazhenov:#0f9d76;
+    --radius:16px;
+    --shadow:0 1px 2px rgba(16,24,40,.05), 0 10px 30px -16px rgba(16,24,40,.28);
+  }
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    color:var(--text);
+    background:
+      radial-gradient(1100px 520px at 8% -12%, #e6ecff 0%, transparent 58%),
+      radial-gradient(900px 480px at 100% -6%, #ffe6f4 0%, transparent 55%),
+      var(--bg);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- Верхняя панель ---------- */
+  .topbar{
+    position:sticky;top:0;z-index:60;
+    background:rgba(255,255,255,.84);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar-inner{
+    max-width:1720px;margin:0 auto;padding:14px 24px;
+    display:flex;align-items:center;gap:28px;flex-wrap:wrap;
+  }
+  .brand{display:flex;align-items:center;gap:12px;min-width:260px}
+  .logo{
+    width:42px;height:42px;border-radius:12px;flex:none;
+    display:grid;place-items:center;
+    font-weight:800;font-size:20px;color:#fff;
+    background:linear-gradient(140deg,#4f46e5,#7c3aed 55%,#db2777);
+    box-shadow:0 8px 18px -8px rgba(79,70,229,.75);
+  }
+  .brand h1{margin:0;font-size:16.5px;font-weight:700;letter-spacing:-.2px}
+  .brand p{margin:2px 0 0;font-size:12.5px;color:var(--muted)}
+
+  .progress-wrap{flex:1 1 320px;max-width:520px;margin-left:auto}
+  .progress-top{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;color:var(--muted);margin-bottom:6px}
+  .progress-top b{font-size:13px;color:var(--text)}
+  .progress{height:9px;border-radius:999px;background:#e6ebf6;overflow:hidden}
+  .fill{
+    height:100%;width:0%;border-radius:999px;
+    background:linear-gradient(90deg,#4f46e5,#7c3aed 55%,#12b76a);
+    transition:width .35s cubic-bezier(.4,0,.2,1);
+  }
+
+  /* ---------- Статистика и фильтры ---------- */
+  .toolbar{max-width:1720px;margin:0 auto;padding:18px 24px 6px}
+  .stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  .stat{
+    display:flex;align-items:center;gap:8px;
+    background:var(--panel);border:1px solid var(--line);border-radius:999px;
+    padding:7px 14px;font-size:13px;box-shadow:var(--shadow);
+  }
+  .stat b{font-weight:600}
+  .stat .num{color:var(--muted);font-variant-numeric:tabular-nums;font-size:12.5px}
+
+  .filters{display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+  .chips{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .chips-label{font-size:12px;color:var(--muted);margin-right:2px}
+  .chip{
+    display:inline-flex;align-items:center;gap:6px;
+    border:1px solid var(--line);background:var(--panel);color:var(--muted);
+    border-radius:999px;padding:6px 12px;font-size:12.5px;font-family:inherit;
+    cursor:pointer;transition:.15s;white-space:nowrap;
+  }
+  .chip:hover{border-color:var(--line-strong);color:var(--text)}
+  .chip.is-on{background:#1b2434;border-color:#1b2434;color:#fff}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none}
+  .dot-andrey{background:var(--andrey)}
+  .dot-sonya{background:var(--sonya)}
+  .dot-bazhenov{background:var(--bazhenov)}
+
+  .search{
+    flex:1 1 200px;min-width:170px;max-width:320px;
+    border:1px solid var(--line);border-radius:999px;background:var(--panel);
+    padding:8px 15px;font-size:13px;font-family:inherit;color:var(--text);outline:none;transition:.15s;
+  }
+  .search:focus{border-color:#9aa8ff;box-shadow:0 0 0 3px rgba(79,70,229,.13)}
+  .btn-ghost{
+    border:1px solid var(--line);background:var(--panel);color:var(--muted);
+    border-radius:999px;padding:8px 14px;font-size:12.5px;font-family:inherit;
+    cursor:pointer;transition:.15s;margin-left:auto;white-space:nowrap;
+  }
+  .btn-ghost:hover{color:#b42318;border-color:#f4b8b3;background:#fff6f5}
+
+  /* ---------- Доска ---------- */
+  .board-wrap{padding:18px 24px 80px;overflow-x:auto;max-width:1720px;margin:0 auto}
+  .board{display:flex;gap:16px;align-items:flex-start}
+
+  .column{
+    flex:1 1 300px;min-width:280px;max-width:470px;
+    background:rgba(255,255,255,.72);
+    border:1px solid var(--line);border-radius:var(--radius);
+    padding:14px;display:flex;flex-direction:column;gap:10px;
+    backdrop-filter:blur(6px);
+  }
+  .col-head{display:flex;flex-direction:column;gap:5px;padding:2px 2px 8px;border-bottom:1px dashed var(--line)}
+  .col-top{display:flex;align-items:center;gap:8px}
+  .col-num{
+    width:22px;height:22px;border-radius:7px;flex:none;display:grid;place-items:center;
+    font-size:11.5px;font-weight:700;color:#4f46e5;background:#eaeeff;
+  }
+  .col-head h2{margin:0;font-size:13.5px;font-weight:700;letter-spacing:-.1px;line-height:1.3}
+  .col-meta{font-size:11.5px;color:var(--muted)}
+  .tag{
+    display:inline-block;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:10.5px;font-weight:600;padding:1px 6px;border-radius:5px;
+    background:#eef1f6;color:#4a5568;vertical-align:1px;
+  }
+  .col-goal{margin:2px 0 4px;font-size:11.5px;line-height:1.45;color:var(--muted)}
+  .col-progress{display:flex;align-items:center;gap:8px}
+  .col-progress .bar{flex:1;height:5px;border-radius:999px;background:#e6ebf6;overflow:hidden}
+  .col-progress .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#4f46e5,#12b76a);transition:width .3s}
+  .col-progress span{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+  .cards{display:flex;flex-direction:column;gap:8px}
+
+  /* ---------- Карточка ---------- */
+  .card{
+    --c:#cbd5e1;
+    position:relative;background:var(--panel);
+    border:1px solid var(--line);border-left:3px solid var(--c);
+    border-radius:12px;padding:11px 12px 12px;
+    cursor:pointer;transition:transform .16s, box-shadow .16s, border-color .16s, opacity .16s, background .16s;
+    outline:none;
+  }
+  .card:hover{transform:translateY(-1px);box-shadow:0 8px 20px -12px rgba(16,24,40,.45);border-color:var(--line-strong);border-left-color:var(--c)}
+  .card:focus-visible{box-shadow:0 0 0 3px rgba(79,70,229,.25)}
+  .card.a-andrey{--c:var(--andrey)}
+  .card.a-sonya{--c:var(--sonya)}
+  .card.a-bazhenov{--c:var(--bazhenov)}
+
+  .card-top{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+  .date{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .author{font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:999px;background:#eef2f9;color:#4a5568}
+  .card.a-andrey .author{background:#e8efff;color:#2454d1}
+  .card.a-sonya .author{background:#fdeaf5;color:#b32b7d}
+  .card.a-bazhenov .author{background:#e3f7f0;color:#0a7a5c}
+
+  .check{
+    width:18px;height:18px;border-radius:50%;flex:none;margin-left:auto;
+    border:2px solid #d4dbea;position:relative;transition:.16s;
+  }
+  .card:hover .check{border-color:#a9b6d1}
+
+  .msg{font-size:13px;line-height:1.45;font-weight:600;letter-spacing:-.05px}
+  .type{
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:10.5px;font-weight:700;padding:2px 6px;border-radius:6px;
+    margin-right:6px;white-space:nowrap;
+  }
+  .t-feat{background:#e7f7ef;color:#0b7a4b}
+  .t-fix{background:#fdeaea;color:#b42318}
+  .t-refactor{background:#fff4e5;color:#a15c07}
+  .t-docs{background:#e8f0fe;color:#1a4fb8}
+  .t-test{background:#f3e9fd;color:#7a2fbf}
+  .t-chore{background:#eef1f6;color:#4a5568}
+  .t-other{background:#eef1f6;color:#4a5568}
+
+  .desc{margin:6px 0 0;font-size:11.8px;line-height:1.5;color:var(--muted)}
+
+  .card.is-done{opacity:.58;background:#f7fbf9}
+  .card.is-done .msg .rest{text-decoration:line-through;text-decoration-thickness:1.5px}
+  .card.is-done .check{background:var(--done);border-color:var(--done)}
+  .card.is-done .check::after{
+    content:"";position:absolute;left:5px;top:1.5px;width:4px;height:8px;
+    border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg);
+  }
+
+  .empty{display:none;text-align:center;font-size:12px;color:var(--muted);padding:18px 0}
+  .column.is-empty .empty{display:block}
+  .column.is-empty .cards{display:none}
+
+  /* ---------- Правила ---------- */
+  .rules{
+    max-width:1720px;margin:0 auto 48px;padding:0 24px;
+  }
+  .rules details{
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:14px 18px;box-shadow:var(--shadow);
+  }
+  .rules summary{
+    cursor:pointer;font-size:13.5px;font-weight:600;color:var(--text);
+    list-style:none;display:flex;align-items:center;gap:8px;
+  }
+  .rules summary::-webkit-details-marker{display:none}
+  .rules summary::before{
+    content:"▸";color:var(--muted);font-size:12px;transition:transform .2s;display:inline-block;
+  }
+  .rules details[open] summary::before{transform:rotate(90deg)}
+  .rules ul{margin:12px 0 0;padding-left:18px;font-size:12.8px;line-height:1.75;color:var(--muted)}
+  .rules li b{color:var(--text);font-weight:600}
+  .rules code{
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:11.5px;background:#f1f4fa;padding:1px 5px;border-radius:5px;color:#374151;
+  }
+
+  @media (max-width:640px){
+    .topbar-inner{padding:12px 16px;gap:14px}
+    .progress-wrap{max-width:none;flex-basis:100%;margin-left:0}
+    .toolbar{padding:14px 16px 4px}
+    .board-wrap{padding:14px 16px 64px}
+    .btn-ghost{margin-left:0}
+    .rules{padding:0 16px}
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="logo">Щ</div>
+      <div>
+        <h1>Доска задач · проект «Щелк»</h1>
+        <p>48 коммитов · 3 участника · 6–19 ноября</p>
+      </div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-top">
+        <span id="doneLabel">0 из 48 коммитов</span>
+        <b id="pct">0%</b>
+      </div>
+      <div class="progress"><div class="fill" id="fill"></div></div>
+    </div>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div class="stats">
+    <div class="stat"><span class="dot dot-andrey"></span><b>Андрей</b><span class="num" data-stat="andrey">0/16</span></div>
+    <div class="stat"><span class="dot dot-sonya"></span><b>Соня</b><span class="num" data-stat="sonya">0/16</span></div>
+    <div class="stat"><span class="dot dot-bazhenov"></span><b>Баженов</b><span class="num" data-stat="bazhenov">0/16</span></div>
+  </div>
+
+  <div class="filters">
+    <div class="chips" id="authorFilter">
+      <span class="chips-label">Автор:</span>
+      <button class="chip is-on" data-val="all">Все</button>
+      <button class="chip" data-val="andrey"><span class="dot dot-andrey"></span>Андрей</button>
+      <button class="chip" data-val="sonya"><span class="dot dot-sonya"></span>Соня</button>
+      <button class="chip" data-val="bazhenov"><span class="dot dot-bazhenov"></span>Баженов</button>
+    </div>
+
+    <div class="chips" id="statusFilter">
+      <span class="chips-label">Статус:</span>
+      <button class="chip is-on" data-val="all">Все</button>
+      <button class="chip" data-val="todo">В работе</button>
+      <button class="chip" data-val="done">Готово</button>
+    </div>
+
+    <input class="search" id="search" type="search" placeholder="Поиск по коммитам…" autocomplete="off">
+    <button class="btn-ghost" id="resetBtn">Сбросить прогресс</button>
+  </div>
+</div>
+
+<div class="board-wrap">
+  <div class="board" id="board"></div>
+</div>
+
+<div class="rules">
+  <details>
+    <summary>Правила работы с Git</summary>
+    <ul>
+      <li><b>Ветки.</b> <code>main</code> защищена, работа идёт в <code>feature/logic</code> (Андрей), <code>feature/ui</code> (Соня) и <code>feature/data</code> (Баженов). Перед слиянием — <code>git pull --rebase origin main</code>, затем Pull Request. В <code>main</code> вливают через <code>--no-ff</code>.</li>
+      <li><b>Ревью по кругу.</b> Андрей проверяет Баженова, Баженов проверяет Соню, Соня проверяет Андрея.</li>
+      <li><b>Сообщения.</b> Conventional Commits на русском: <code>feat</code>, <code>fix</code>, <code>refactor</code>, <code>docs</code>, <code>test</code>, <code>chore</code>.</li>
+      <li><b>Сборка.</b> Каждый коммит должен собираться командой <code>dotnet build</code>.</li>
+      <li><b>Теги.</b> <code>v0.1-mvp</code> (8 ноября), <code>v0.5</code> (14 ноября), <code>v1.0</code> (19 ноября).</li>
+      <li><b>Порядок в течение дня.</b> Если у двух участников зависимые коммиты в один день, сначала вливается коммит автора зависимости. Такие места отмечены в карточках.</li>
+      <li><b>Даты плановые.</b> Коммитьте по мере реальной работы. Если день сдвинулся, сдвигайте и остальные, но сохраняйте порядок зависимостей.</li>
+    </ul>
+  </details>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ===================== Данные ===================== */
+  var AUTHORS = {
+    andrey:   { name: "Андрей"  },
+    sonya:    { name: "Соня"    },
+    bazhenov: { name: "Баженов" }
+  };
+
+  var STAGES = [
+    {
+      short: "Каркас и MVP",
+      dates: "6–8 ноября",
+      tag: "v0.1-mvp",
+      goal: "Играбельный прототип на двоих за одним компьютером: без меню, сохранений и рекордов.",
+      commits: [
+        { d:"6 ноя", a:"andrey",   m:"chore: создать решение Shchelk, .gitignore и README-заготовку",
+          t:"Консольный проект .NET 8 с включёнными nullable и XML-документацией. Временная заглушка в Program.cs, .gitignore для bin/ и obj/." },
+        { d:"6 ноя", a:"andrey",   m:"feat(logic): добавить структуру Position и перечисление CellState",
+          t:"Значимый тип Position (ряд, колонка с 1) и enum CellState { Chocolate, Eaten }. Фиксируем нумерацию: ряд 1 нижний." },
+        { d:"6 ноя", a:"sonya",    m:"feat(ui): добавить ConsoleIo с методами Write, WriteLine и WriteError",
+          t:"Первый модуль ввода-вывода, вся работа с консолью собрана в одном классе. WriteError красит текст красным и возвращает цвет в finally." },
+        { d:"6 ноя", a:"bazhenov", m:"docs: описать трёхуровневую архитектуру и контракты между слоями",
+          t:"В docs/ARCHITECTURE.md схема UI → Logic → Data, список классов по участникам и правила зависимостей." },
+        { d:"7 ноя", a:"andrey",   m:"feat(logic): добавить класс Board — двумерный массив клеток и съедание долек",
+          t:"Конструктор с rows = 5 и columns = 7, константы размеров, CellState[,], метод Eat, отравленная долька Board.Poison и OnlyPoisonLeft." },
+        { d:"7 ноя", a:"sonya",    m:"feat(ui): добавить BoardRenderer — вывод поля через StringBuilder",
+          t:"Render строит поле снизу вверх с осями координат, GetLegend форматирует легенду через string.Format." },
+        { d:"7 ноя", a:"bazhenov", m:"feat(data): добавить StorageException — исключение уровня данных",
+          t:"Пользовательское исключение с двумя конструкторами (сообщение и внутреннее исключение). Основа для обработки ошибок файлов." },
+        { d:"8 ноя", a:"andrey",   m:"feat(logic): добавить GameEngine — MVP хода двух игроков",
+          t:"Конструктор с двумя именами, MakeMove, смена игрока, определение проигравшего при съедении Poison, enum GameStatus. Временный запуск партии в Program.cs." },
+        { d:"8 ноя", a:"sonya",    m:"feat(ui): добавить MVP игрового цикла GameSession с вводом «ряд колонка»",
+          t:"Синхронный цикл: отрисовка поля, чтение строки, int.TryParse, вызов MakeMove, сообщение о победителе. Слияние после коммита Андрея." },
+        { d:"8 ноя", a:"bazhenov", m:"feat(data): добавить TextFileStorage — чтение и запись строки с try/catch/finally",
+          t:"Первое хранилище на File.ReadAllText и WriteAllText. Ошибки ввода-вывода превращаются в StorageException, временный файл удаляется в finally." }
+      ]
+    },
+    {
+      short: "Устойчивость: ввод, исключения, меню",
+      dates: "9–11 ноября",
+      tag: null,
+      goal: "Валидация ввода, пользовательские исключения, главное меню и обобщённое хранилище.",
+      commits: [
+        { d:"9 ноя",  a:"andrey",   m:"feat(logic): добавить класс Player со свойством-валидатором имени",
+          t:"Свойство Name с логикой в сеттере: обрезка пробелов, пустое имя и длина больше 20 запрещены. Константа MaxNameLength. Движок переходит на массив Player[]." },
+        { d:"9 ноя",  a:"sonya",    m:"feat(ui): добавить InputParser.TryParseMove с out-параметрами и проверкой границ",
+          t:"Разбор хода по символам char: только цифры, два числа, разделители пробел, запятая или ;. Отдельные сообщения для ряда и колонки вне поля." },
+        { d:"9 ноя",  a:"bazhenov", m:"feat(logic): добавить модели GameSnapshot, SavedMove и ScoreRecord",
+          t:"Простые модели данных на автосвойствах. В снимке партии хранится список ходов, а не поле, чтобы состояние можно было восстановить проигрыванием." },
+        { d:"10 ноя", a:"andrey",   m:"feat(logic): добавить пользовательские исключения и заменить bool-результаты на throw",
+          t:"GameException, InvalidMoveException с позицией, GameStateException. Board.Eat бросает исключение вместо возврата false, GameSession ловит его." },
+        { d:"10 ноя", a:"sonya",    m:"feat(ui): добавить команды undo, history, save, help, menu",
+          t:"enum CommandType и структура GameCommand. TryParseCommand распознаёт русские и английские алиасы. Исполнение придёт позже, вместе с логикой." },
+        { d:"10 ноя", a:"bazhenov", m:"feat(logic): добавить первую версию ScoreService — топ-N и сортировка",
+          t:"Запись результата в файл и выбор лучших. Сортировка через List.Sort с делегатом Comparison: счёт по убыванию, затем ходы по возрастанию, затем дата." },
+        { d:"11 ноя", a:"andrey",   m:"refactor(logic): Board.TryGetCell с out и GameEngine.NextIndex с ref",
+          t:"Безопасное чтение клетки через out. Переключение игрока вынесено в метод с ref int index. Появляется статический Board.IsPoison." },
+        { d:"11 ноя", a:"sonya",    m:"feat(ui): добавить главное меню ConsoleApp и enum MenuChoice",
+          t:"Меню на массиве string[]: новая игра, загрузка, рекорды, выход. Рабочая только новая игра, остальные пункты показывают заглушку." },
+        { d:"11 ноя", a:"bazhenov", m:"refactor(data): заменить TextFileStorage на обобщённые IRepository<T> и JsonFileRepository<T>",
+          t:"Обобщённый интерфейс с ограничением where T : class и JSON-реализация на System.Text.Json. Сервис рекордов переключён на новый интерфейс." }
+      ]
+    },
+    {
+      short: "Обобщения, события, асинхронность",
+      dates: "12–14 ноября",
+      tag: "v0.5",
+      goal: "История ходов, события движка, async/await, отмена хода и таймер на ход.",
+      commits: [
+        { d:"12 ноя", a:"andrey",   m:"feat(logic): добавить MoveRecord и историю ходов в GameEngine",
+          t:"Неизменяемая запись хода: номер, игрок, позиция, съеденные дольки. History и GetEatenCount для подсчёта счёта игрока." },
+        { d:"12 ноя", a:"sonya",    m:"feat(ui): добавить обобщённый делегат TryParser<T> и метод ReadValidAsync<T>",
+          t:"Единый механизм «спрашивать, пока не введут корректно». Фабрики разборщиков CreateIntParser и CreateNameParser со значениями по умолчанию при пустом вводе." },
+        { d:"12 ноя", a:"bazhenov", m:"refactor(data): сделать LoadAsync и SaveAsync асинхронными с CancellationToken",
+          t:"Чтение и запись через FileStream(useAsync: true) и JsonSerializer.*Async. Маппинг JsonException, IOException и UnauthorizedAccessException в StorageException." },
+        { d:"12 ноя", a:"bazhenov", m:"feat(data): атомарная запись через временный файл и очистка в finally",
+          t:"Запись в .tmp и File.Move(overwrite: true), чтобы сбой не испортил прежнее сохранение. Удаление временного файла в finally." },
+        { d:"13 ноя", a:"andrey",   m:"feat(logic): добавить события MoveMade, MoveUndone, GameFinished",
+          t:"EventHandler<T>, классы MoveEventArgs и GameFinishedEventArgs, enum GameEndReason. Рассылка через protected virtual OnXxx." },
+        { d:"13 ноя", a:"sonya",    m:"feat(ui): асинхронное чтение ввода — ReadLineAsync, InputResult, InputClosedException",
+          t:"Task.Run(Console.ReadLine), структура InputResult и enum InputStatus. Конец потока ввода не приводит к зацикливанию. GameSession.Run становится RunAsync." },
+        { d:"13 ноя", a:"bazhenov", m:"feat(data): виртуальный CreateOptions и читаемая кириллица в JSON",
+          t:"Настройки сериализации вынесены в protected virtual. Включён UnsafeRelaxedJsonEscaping, поэтому имена игроков в файле читаемы." },
+        { d:"14 ноя", a:"andrey",   m:"feat(logic): добавить отмену хода Undo и Board.Restore",
+          t:"Возврат съеденных долек, возврат очереди автору хода, свойство CanUndo, событие MoveUndone." },
+        { d:"14 ноя", a:"andrey",   m:"feat(logic): добавить TurnTimer — лимит времени на ход через Task и CancellationToken",
+          t:"TurnTimer.WaitAsync гоняет Task.WhenAny(work, Task.Delay) со связанным токеном. В движок добавлены TurnTimeLimitSeconds и DeclareTimeout." },
+        { d:"14 ноя", a:"sonya",    m:"feat(ui): подписать GameSession на события движка",
+          t:"Обработчики MoveMade, MoveUndone, GameFinished. Отписка в finally, результат партии сохраняется для записи в рекорды. Слияние после коммита Андрея от 13 ноября." },
+        { d:"14 ноя", a:"bazhenov", m:"feat(logic): SaveGameService.CreateSnapshot и SaveAsync",
+          t:"Сервис получает фабрику хранилищ как делегат Func<string, IRepository<GameSnapshot>>. Добавлено GameStorageException, ошибки данных оборачиваются в него." }
+      ]
+    },
+    {
+      short: "Функции ТЗ и интеграция",
+      dates: "15–17 ноября",
+      tag: null,
+      goal: "Все требования ТЗ работают вместе: undo, history, save/load, рекорды, таймер, композиция слоёв.",
+      commits: [
+        { d:"15 ноя", a:"andrey",   m:"refactor(logic): значения по умолчанию и проверка аргументов в конструкторах",
+          t:"GameEngine(…, rows = 5, columns = 7, limit = 60), ArgumentOutOfRangeException для размеров и лимита." },
+        { d:"15 ноя", a:"sonya",    m:"feat(ui): команды undo и history в сеансе партии",
+          t:"ExecuteAsync с внутренним enum CommandOutcome (продолжить, перерисовать, выйти). RenderHistory форматирует ходы через AppendFormat. Слияние после коммита Андрея от 14 ноября." },
+        { d:"15 ноя", a:"sonya",    m:"feat(ui): ограничение времени на ход с обратным отсчётом",
+          t:"ReadLineAsync принимает TimeSpan?, незавершённое чтение сохраняется между запросами, лимит действует на весь ход и не сбрасывается командами help и history. Слияние после коммита Андрея от 14 ноября." },
+        { d:"15 ноя", a:"bazhenov", m:"feat(logic): SaveGameService.RestoreEngine и LoadAsync — загрузка проигрыванием ходов",
+          t:"Проверка версии файла, повторное проигрывание ходов через MakeMove. Недопустимый ход превращается в понятную ошибку «файл повреждён»." },
+        { d:"15 ноя", a:"bazhenov", m:"feat(logic): асинхронный ScoreService на IRepository<List<ScoreRecord>>",
+          t:"GetTopAsync, AddAsync, лимит хранимых записей, CreateRecord по данным события GameFinished." },
+        { d:"16 ноя", a:"andrey",   m:"fix(logic): запретить одинаковые имена игроков и ходы после конца партии",
+          t:"Сравнение имён без учёта регистра, EnsureInProgress с GameStateException." },
+        { d:"16 ноя", a:"sonya",    m:"feat(ui): UnicodeBoardRenderer с виртуальным GetCellSymbol",
+          t:"GetCellSymbol в базовом классе становится protected virtual, наследник переопределяет его и вызывает base." },
+        { d:"16 ноя", a:"sonya",    m:"feat(ui): подтверждение хода на отравленную дольку и автоход последней дольки",
+          t:"Разборщик «да/нет», защита от случайного проигрыша. Если осталась только отравленная долька, её съедают автоматически." },
+        { d:"16 ноя", a:"bazhenov", m:"fix(logic): устойчивость к повреждённым файлам сохранения и рекордов",
+          t:"Повреждённая таблица рекордов заменяется новой, null-записи отбрасываются, сохранение завершённой партии запрещено." },
+        { d:"17 ноя", a:"andrey",   m:"feat: собрать слои в Program.cs — корень композиции",
+          t:"Создание репозиториев, сервисов и ConsoleApp. Ctrl+C завершает программу штатно через CancellationTokenSource, аргумент --ascii, UTF-8 для консоли, перехват неожиданных ошибок." },
+        { d:"17 ноя", a:"sonya",    m:"feat(ui): сохранение и загрузка через меню и команду save",
+          t:"Запрос имени файла с проверкой допустимых символов и значением по умолчанию. Выход в меню предлагает сохранить партию." },
+        { d:"17 ноя", a:"bazhenov", m:"test: добавить ручной тест-план и примеры повреждённых savegame.json",
+          t:"В docs/TESTING.md сценарии: невалидный ввод, undo, save и load, таймаут, повреждённые и отсутствующие файлы, закрытие ввода. В docs/samples/ лежат файлы-примеры." }
+      ]
+    },
+    {
+      short: "Финализация",
+      dates: "18–19 ноября",
+      tag: "v1.0",
+      goal: "XML-документация, устойчивость интерфейса, README и релиз v1.0.",
+      commits: [
+        { d:"18 ноя", a:"andrey",   m:"docs: XML-документация всех публичных членов, ноль предупреждений компилятора",
+          t:"Проверка dotnet build на отсутствие CS1591 и nullable-предупреждений, правки стиля по код-стайлу Microsoft." },
+        { d:"18 ноя", a:"sonya",    m:"feat(ui): таблица рекордов при запуске и после партии",
+          t:"RenderScores с выровненными столбцами, топ-5 при старте и после завершения партии. Ошибки чтения рекордов не мешают запуску." },
+        { d:"18 ноя", a:"bazhenov", m:"fix(data): раздельные сообщения для ошибок доступа и недопустимых путей",
+          t:"Обработка NotSupportedException, ArgumentException, DirectoryNotFoundException. Ошибки пути не роняют программу." },
+        { d:"19 ноя", a:"andrey",   m:"chore(release): README с правилами и архитектурой, тег v1.0",
+          t:"Инструкция по сборке и запуску, правила игры и таблица соответствия требований ТЗ коду. Слияние всех веток и тег v1.0." },
+        { d:"19 ноя", a:"sonya",    m:"fix(ui): устойчивость меню к закрытию ввода и непредвиденным ошибкам",
+          t:"Фильтры catch … when в главном цикле, сообщения вместо падения, финальная вычитка текстов интерфейса." },
+        { d:"19 ноя", a:"bazhenov", m:"docs: описание форматов savegame.json и scores.json",
+          t:"Структура файлов с примерами, правила версионирования формата, описание поведения при повреждении." }
+      ]
+    }
+  ];
+
+  /* ===================== Состояние ===================== */
+  var STORAGE_KEY = "shchelk-board-v1";
+  var done = {};
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) done = JSON.parse(raw) || {};
+  } catch (e) { done = {}; }
+
+  function persist() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(done)); } catch (e) {}
+  }
+
+  var filters = { author: "all", status: "all", q: "" };
+
+  /* ===================== Утилиты ===================== */
+  function esc(s) {
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function typeClass(prefix) {
+    if (prefix.indexOf("feat") === 0) return "t-feat";
+    if (prefix.indexOf("fix") === 0) return "t-fix";
+    if (prefix.indexOf("refactor") === 0) return "t-refactor";
+    if (prefix.indexOf("docs") === 0) return "t-docs";
+    if (prefix.indexOf("test") === 0) return "t-test";
+    if (prefix.indexOf("chore") === 0) return "t-chore";
+    return "t-other";
+  }
+
+  /* ===================== Построение доски ===================== */
+  var board = document.getElementById("board");
+
+  function buildBoard() {
+    var html = STAGES.map(function (stage, si) {
+      var cardsHtml = stage.commits.map(function (c, ci) {
+        var id = "c" + (si + 1) + "-" + (ci + 1);
+        c.id = id;
+
+        var idx = c.m.indexOf(":");
+        var prefix = idx > -1 ? c.m.slice(0, idx) : c.m;
+        var rest = idx > -1 ? c.m.slice(idx + 1).trim() : "";
+        var isDone = !!done[id];
+
+        return (
+          '<article class="card a-' + c.a + (isDone ? " is-done" : "") + '"' +
+          ' data-id="' + id + '" data-author="' + c.a + '"' +
+          ' tabindex="0" role="button" aria-pressed="' + isDone + '"' +
+          ' aria-label="' + esc(c.m) + '">' +
+            '<div class="card-top">' +
+              '<span class="date">' + esc(c.d) + '</span>' +
+              '<span class="author">' + esc(AUTHORS[c.a].name) + '</span>' +
+              '<span class="check" aria-hidden="true"></span>' +
+            '</div>' +
+            '<div class="msg">' +
+              '<span class="type ' + typeClass(prefix) + '">' + esc(prefix) + '</span>' +
+              '<span class="rest">' + esc(rest) + '</span>' +
+            '</div>' +
+            '<p class="desc">' + esc(c.t) + '</p>' +
+          '</article>'
+        );
+      }).join("");
+
+      return (
+        '<section class="column" data-stage="' + (si + 1) + '">' +
+          '<header class="col-head">' +
+            '<div class="col-top">' +
+              '<span class="col-num">' + (si + 1) + '</span>' +
+              '<h2>' + esc(stage.short) + '</h2>' +
+            '</div>' +
+            '<div class="col-meta">' + esc(stage.dates) +
+              (stage.tag ? ' · <span class="tag">' + esc(stage.tag) + '</span>' : '') +
+            '</div>' +
+            '<p class="col-goal">' + esc(stage.goal) + '</p>' +
+            '<div class="col-progress">' +
+              '<div class="bar"><i></i></div>' +
+              '<span data-count>0/' + stage.commits.length + '</span>' +
+            '</div>' +
+          '</header>' +
+          '<div class="cards">' + cardsHtml + '</div>' +
+          '<div class="empty">Ничего не найдено</div>' +
+        '</section>'
+      );
+    }).join("");
+
+    board.innerHTML = html;
+  }
+
+  /* ===================== Статистика ===================== */
+  var fillEl = document.getElementById("fill");
+  var pctEl = document.getElementById("pct");
+  var doneLabelEl = document.getElementById("doneLabel");
+
+  function updateStats() {
+    var cards = Array.prototype.slice.call(document.querySelectorAll(".card"));
+    var total = cards.length;
+    var doneCount = cards.filter(function (c) { return c.classList.contains("is-done"); }).length;
+    var pct = total ? Math.round((doneCount / total) * 100) : 0;
+
+    fillEl.style.width = pct + "%";
+    pctEl.textContent = pct + "%";
+    doneLabelEl.textContent = doneCount + " из " + total + " коммитов";
+
+    ["andrey", "sonya", "bazhenov"].forEach(function (a) {
+      var list = cards.filter(function (c) { return c.dataset.author === a; });
+      var d = list.filter(function (c) { return c.classList.contains("is-done"); }).length;
+      var el = document.querySelector('[data-stat="' + a + '"]');
+      if (el) el.textContent = d + "/" + list.length;
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll(".column"), function (col) {
+      var list = Array.prototype.slice.call(col.querySelectorAll(".card"));
+      var d = list.filter(function (c) { return c.classList.contains("is-done"); }).length;
+      var bar = col.querySelector(".bar i");
+      var cnt = col.querySelector("[data-count]");
+      if (bar) bar.style.width = (list.length ? (d / list.length) * 100 : 0) + "%";
+      if (cnt) cnt.textContent = d + "/" + list.length;
+    });
+  }
+
+  /* ===================== Фильтры ===================== */
+  function applyFilters() {
+    var q = filters.q.trim().toLowerCase();
+
+    Array.prototype.forEach.call(document.querySelectorAll(".column"), function (col) {
+      var visible = 0;
+      Array.prototype.forEach.call(col.querySelectorAll(".card"), function (card) {
+        var authorOk = filters.author === "all" || card.dataset.author === filters.author;
+        var isDone = card.classList.contains("is-done");
+        var statusOk = filters.status === "all" ||
+                       (filters.status === "done" ? isDone : !isDone);
+        var textOk = !q || card.textContent.toLowerCase().indexOf(q) > -1;
+        var show = authorOk && statusOk && textOk;
+
+        card.style.display = show ? "" : "none";
+        if (show) visible++;
+      });
+      col.classList.toggle("is-empty", visible === 0);
+    });
+  }
+
+  function bindChips(containerId, key) {
+    var container = document.getElementById(containerId);
+    container.addEventListener("click", function (e) {
+      var chip = e.target.closest(".chip");
+      if (!chip) return;
+      Array.prototype.forEach.call(container.querySelectorAll(".chip"), function (c) {
+        c.classList.remove("is-on");
+      });
+      chip.classList.add("is-on");
+      filters[key] = chip.dataset.val;
+      applyFilters();
+    });
+  }
+
+  /* ===================== Переключение карточки ===================== */
+  function toggleCard(card) {
+    var id = card.dataset.id;
+    var next = !card.classList.contains("is-done");
+
+    if (next) done[id] = true;
+    else delete done[id];
+
+    card.classList.toggle("is-done", next);
+    card.setAttribute("aria-pressed", String(next));
+
+    persist();
+    updateStats();
+  }
+
+  board.addEventListener("click", function (e) {
+    var card = e.target.closest(".card");
+    if (card) toggleCard(card);
+  });
+
+  board.addEventListener("keydown", function (e) {
+    if (e.key !== "Enter" && e.key !== " " && e.key !== "Spacebar") return;
+    var card = e.target.closest(".card");
+    if (!card) return;
+    e.preventDefault();
+    toggleCard(card);
+  });
+
+  /* ===================== Сброс ===================== */
+  document.getElementById("resetBtn").addEventListener("click", function () {
+    if (!Object.keys(done).length) return;
+    if (!window.confirm("Сбросить прогресс по всем 48 коммитам?")) return;
+
+    done = {};
+    persist();
+
+    Array.prototype.forEach.call(document.querySelectorAll(".card"), function (card) {
+      card.classList.remove("is-done");
+      card.setAttribute("aria-pressed", "false");
+    });
+
+    updateStats();
+    applyFilters();
+  });
+
+  /* ===================== Поиск ===================== */
+  document.getElementById("search").addEventListener("input", function (e) {
+    filters.q = e.target.value;
+    applyFilters();
+  });
+
+  /* ===================== Инициализация ===================== */
+  buildBoard();
+  bindChips("authorFilter", "author");
+  bindChips("statusFilter", "status");
+  updateStats();
+  applyFilters();
+})();
+</script>
+
+</body>
+</html>
