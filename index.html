@@ -395,7 +395,7 @@
   <div class="stats">
     <div class="stat"><span class="dot dot-andrey"></span><b>Андрей</b><span class="num" data-stat="andrey">0/16</span></div>
     <div class="stat"><span class="dot dot-sonya"></span><b>Соня</b><span class="num" data-stat="sonya">0/16</span></div>
-    <div class="stat"><span class="dot dot-bazhenov"></span><b>Баженов</b><span class="num" data-stat="bazhenov">0/16</span></div>
+    <div class="stat"><span class="dot dot-bazhenov"></span><b>Петр</b><span class="num" data-stat="bazhenov">0/16</span></div>
   </div>
 
   <div class="filters">
@@ -404,7 +404,7 @@
       <button class="chip is-on" data-val="all">Все</button>
       <button class="chip" data-val="andrey"><span class="dot dot-andrey"></span>Андрей</button>
       <button class="chip" data-val="sonya"><span class="dot dot-sonya"></span>Соня</button>
-      <button class="chip" data-val="bazhenov"><span class="dot dot-bazhenov"></span>Баженов</button>
+      <button class="chip" data-val="bazhenov"><span class="dot dot-bazhenov"></span>Петр</button>
     </div>
 
     <div class="chips" id="statusFilter">
@@ -428,8 +428,8 @@
   <details>
     <summary>Роли и интеграция</summary>
     <p class="lead">
-      Интеграция идёт через <b>общие контракты</b>. Баженов использует <code>GameEngine</code> Андрея и его события.
-      Соня подписывается на события Андрея и вызывает сервисы Баженова. Андрей в финале собирает всё в <code>Program.cs</code>.
+      Интеграция идёт через <b>общие контракты</b>. Петр использует <code>GameEngine</code> Андрея и его события.
+      Соня подписывается на события Андрея и вызывает сервисы Петра. Андрей в финале собирает всё в <code>Program.cs</code>.
     </p>
     <div class="info-table-wrap">
       <table class="info-table">
@@ -448,7 +448,7 @@
             <td><code>UI/</code> (ConsoleIo, InputTypes, InputParser, BoardRenderer, UnicodeBoardRenderer, GameSession, ConsoleApp)</td>
           </tr>
           <tr>
-            <td>Баженов</td>
+            <td>Петр</td>
             <td>Уровень данных, сохранение и загрузка, рекорды</td>
             <td><code>Data/</code>, <code>Logic/</code> (GameSnapshot, SaveGameService, ScoreRecord, ScoreService), тест-план</td>
           </tr>
@@ -463,8 +463,8 @@
   <details>
     <summary>Правила работы с Git</summary>
     <ul>
-      <li><b>Ветки.</b> <code>main</code> защищена, работа идёт в <code>feature/logic</code> (Андрей), <code>feature/ui</code> (Соня) и <code>feature/data</code> (Баженов). Перед слиянием — <code>git pull --rebase origin main</code>, затем Pull Request. В <code>main</code> вливают через <code>--no-ff</code>.</li>
-      <li><b>Ревью по кругу.</b> Андрей проверяет Баженова, Баженов проверяет Соню, Соня проверяет Андрея.</li>
+      <li><b>Ветки.</b> <code>main</code> защищена, работа идёт в <code>feature/logic</code> (Андрей), <code>feature/ui</code> (Соня) и <code>feature/data</code> (Петр). Перед слиянием — <code>git pull --rebase origin main</code>, затем Pull Request. В <code>main</code> вливают через <code>--no-ff</code>.</li>
+      <li><b>Ревью по кругу.</b> Андрей проверяет Петра, Петр проверяет Соню, Соня проверяет Андрея.</li>
       <li><b>Сообщения.</b> Conventional Commits на русском: <code>feat</code>, <code>fix</code>, <code>refactor</code>, <code>docs</code>, <code>test</code>, <code>chore</code>.</li>
       <li><b>Сборка.</b> Каждый коммит должен собираться командой <code>dotnet build</code>.</li>
       <li><b>Теги.</b> <code>v0.1-mvp</code> (8 ноября), <code>v0.5</code> (14 ноября), <code>v1.0</code> (19 ноября).</li>
@@ -490,18 +490,18 @@
           <tr><td>Константы, конструкторы, методы типа</td><td>Андрей 7.11 (Board), Андрей 9.11 (Player.MaxNameLength)</td></tr>
           <tr><td>Строки, StringBuilder, char, форматирование</td><td>Соня 7.11 (отрисовка), Соня 9.11 (разбор по символам)</td></tr>
           <tr><td>Свойства с логикой</td><td>Андрей 9.11 (Player.Name)</td></tr>
-          <tr><td>Исключения, try/catch/finally, throw</td><td>Баженов 7.11 и 8.11, Андрей 10.11, Баженов 14.11</td></tr>
+          <tr><td>Исключения, try/catch/finally, throw</td><td>Петр 7.11 и 8.11, Андрей 10.11, Петр 14.11</td></tr>
           <tr><td>out и ref</td><td>Соня 9.11 (out), Андрей 11.11 (out и ref)</td></tr>
-          <tr><td>Делегаты</td><td>Баженов 10.11 (Comparison), Соня 12.11 (TryParser&lt;T&gt;), Баженов 14.11 (Func)</td></tr>
-          <tr><td>Обобщения</td><td>Баженов 11.11 (IRepository&lt;T&gt;), Соня 12.11 (ReadValidAsync&lt;T&gt;)</td></tr>
-          <tr><td>Task, async/await</td><td>Баженов 12.11, Соня 13.11, Андрей 14.11</td></tr>
-          <tr><td>Виртуальные методы</td><td>Андрей 13.11 (OnXxx), Баженов 13.11 (CreateOptions), Соня 16.11 (GetCellSymbol)</td></tr>
+          <tr><td>Делегаты</td><td>Петр 10.11 (Comparison), Соня 12.11 (TryParser&lt;T&gt;), Петр 14.11 (Func)</td></tr>
+          <tr><td>Обобщения</td><td>Петр 11.11 (IRepository&lt;T&gt;), Соня 12.11 (ReadValidAsync&lt;T&gt;)</td></tr>
+          <tr><td>Task, async/await</td><td>Петр 12.11, Соня 13.11, Андрей 14.11</td></tr>
+          <tr><td>Виртуальные методы</td><td>Андрей 13.11 (OnXxx), Петр 13.11 (CreateOptions), Соня 16.11 (GetCellSymbol)</td></tr>
           <tr><td>События</td><td>Андрей 13.11 (объявление), Соня 14.11 (подписка)</td></tr>
           <tr><td>Значения по умолчанию</td><td>Андрей 7.11 (Board), Андрей 15.11 (GameEngine)</td></tr>
           <tr><td>Проверка ввода</td><td>Соня 9.11, 10.11, 12.11 и 16.11</td></tr>
           <tr><td>Меню</td><td>Соня 11.11</td></tr>
-          <tr><td>Сохранение и загрузка</td><td>Баженов 14.11 и 15.11, Соня 17.11</td></tr>
-          <tr><td>Таблица рекордов, топ-N при запуске</td><td>Баженов 10.11 и 15.11, Соня 18.11</td></tr>
+          <tr><td>Сохранение и загрузка</td><td>Петр 14.11 и 15.11, Соня 17.11</td></tr>
+          <tr><td>Таблица рекордов, топ-N при запуске</td><td>Петр 10.11 и 15.11, Соня 18.11</td></tr>
           <tr><td>Отмена хода, история ходов</td><td>Андрей 12.11 и 14.11, Соня 15.11</td></tr>
           <tr><td>Лимит времени на ход</td><td>Андрей 14.11, Соня 15.11</td></tr>
           <tr><td>XML-документация, чистая сборка</td><td>Андрей 18.11</td></tr>
@@ -542,7 +542,7 @@
   var AUTHORS = {
     andrey:   { name: "Андрей"  },
     sonya:    { name: "Соня"    },
-    bazhenov: { name: "Баженов" }
+    bazhenov: { name: "Петр" }
   };
 
   var STAGES = [
